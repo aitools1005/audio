@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 
 # Function to open file dialog and get the selected file paths
 def choose_files():
-    file_paths = st.file_uploader("Select Audio Files", type=["wav", "mp3"], accept_multiple_files=True)
+    file_paths = st.file_uploader("Select Audio Files", type=["wav", "mp3","opus"], accept_multiple_files=True)
     return file_paths
 
 # Main Streamlit app
