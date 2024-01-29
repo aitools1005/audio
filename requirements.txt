@@ -3,4 +3,4 @@ numpy
 matplotlib
 plotly
 pydub
-ffmpeg
+ffmpeg-python
