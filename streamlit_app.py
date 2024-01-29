@@ -23,10 +23,14 @@ def main():
             fig = go.Figure()
 
             # Plot the amplitude waveforms of each selected audio file
-            for i, file_path in enumerate(file_paths, 1):
+            for i, uploaded_file in enumerate(file_paths, 1):
                 try:
-                    file_path_str = str(file_path)
+                    file_path_str = f"file_{i}.wav"  # You can use a temporary file name
                     print(f"Processing File {i}: {file_path_str}")
+
+                    # Save the content of the UploadedFile to a temporary file
+                    with open(file_path_str, "wb") as f:
+                        f.write(uploaded_file.read())
 
                     op = w.open(file_path_str, 'rb')
                     rate = op.getframerate()
@@ -39,9 +43,14 @@ def main():
                     # Create a subplot for each audio file
                     fig.add_trace(go.Scatter(x=np.linspace(0, t, nsample), y=arr, mode='lines',
                                              name=f'Audio Waveform - {os.path.basename(file_path_str)}'))
+
                 except Exception as e:
                     st.warning(f"Error processing file {i}: {file_path_str}")
                     st.warning(f"Error details: {str(e)}")
+
+                finally:
+                    # Delete the temporary file
+                    os.remove(file_path_str)
 
             fig.update_layout(
                 title="Audio Waveforms",
