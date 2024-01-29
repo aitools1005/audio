@@ -14,6 +14,13 @@ def convert_opus_to_wav(opus_path, wav_path):
     audio = AudioSegment.from_file(opus_path, format="opus")
     audio.export(wav_path, format="wav")
 
+# Function to read audio data from file
+def read_audio_file(file_path):
+    audio = AudioSegment.from_file(file_path)
+    rate = audio.frame_rate
+    arr = np.array(audio.get_array_of_samples())
+    return rate, arr
+
 # Main Streamlit app
 def main():
     st.title("Audio Waveform Plotter")
@@ -43,17 +50,11 @@ def main():
                         file_path_str = f"file_{i}_converted.wav"
                         convert_opus_to_wav(opus_path, file_path_str)
 
-                    # Read the WAV file
-                    rate, arr = np.array([]), np.array([])
-                    with open(file_path_str, "rb") as op:
-                        rate = op.getframerate()
-                        nsample = op.getnframes()
-                        stream = op.readframes(-1)
-                        t = int(nsample / rate)
-                        arr = np.frombuffer(stream, dtype=np.int16)
+                    # Read the audio file
+                    rate, arr = read_audio_file(file_path_str)
 
                     # Create a subplot for each audio file
-                    fig.add_trace(go.Scatter(x=np.linspace(0, t, nsample), y=arr, mode='lines',
+                    fig.add_trace(go.Scatter(x=np.linspace(0, len(arr)/rate, len(arr)), y=arr, mode='lines',
                                              name=f'Audio Waveform - {os.path.basename(file_path_str)}'))
 
                 except Exception as e:
