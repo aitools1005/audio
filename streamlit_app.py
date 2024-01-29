@@ -1,4 +1,5 @@
 import streamlit as st
+import ffmpeg
 from pydub import AudioSegment
 import numpy as np
 import os
@@ -16,10 +17,12 @@ def convert_opus_to_wav(opus_path, wav_path):
 
 # Function to read audio data from file
 def read_audio_file(file_path):
+    probe = ffmpeg.probe(file_path, v="error_return", select_streams="a:0", show_entries="format=duration")
+    duration = float(probe["format"]["duration"])
     audio = AudioSegment.from_file(file_path)
     rate = audio.frame_rate
     arr = np.array(audio.get_array_of_samples())
-    return rate, arr
+    return rate, arr, duration
 
 # Main Streamlit app
 def main():
@@ -51,10 +54,10 @@ def main():
                         convert_opus_to_wav(opus_path, file_path_str)
 
                     # Read the audio file
-                    rate, arr = read_audio_file(file_path_str)
+                    rate, arr, duration = read_audio_file(file_path_str)
 
                     # Create a subplot for each audio file
-                    fig.add_trace(go.Scatter(x=np.linspace(0, len(arr)/rate, len(arr)), y=arr, mode='lines',
+                    fig.add_trace(go.Scatter(x=np.linspace(0, duration, len(arr)), y=arr, mode='lines',
                                              name=f'Audio Waveform - {os.path.basename(file_path_str)}'))
 
                 except Exception as e:
