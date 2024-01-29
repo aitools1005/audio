@@ -18,34 +18,42 @@ def main():
 
     # Check if the user selected any files
     if file_paths:
-        num_files = len(file_paths)
-        fig = go.Figure()
+        if isinstance(file_paths, list):
+            num_files = len(file_paths)
+            fig = go.Figure()
 
-        # Plot the amplitude waveforms of each selected audio file
-        for i, file_path in enumerate(file_paths, 1):
-            op = w.open(file_path, 'rb')
-            rate = op.getframerate()
-            nsample = op.getnframes()
-            channels = op.getnchannels()
-            stream = op.readframes(-1)
-            t = int(nsample / rate)
-            arr = np.frombuffer(stream, dtype=np.int16)
+            # Plot the amplitude waveforms of each selected audio file
+            for i, file_path in enumerate(file_paths, 1):
+                try:
+                    file_path_str = str(file_path)
+                    print(f"Processing File {i}: {file_path_str}")
 
-            # Create a subplot for each audio file
-            fig.add_trace(go.Scatter(x=np.linspace(0, t, nsample), y=arr, mode='lines',
-                                     name=f'Audio Waveform - {os.path.basename(file_path)}'))
+                    op = w.open(file_path_str, 'rb')
+                    rate = op.getframerate()
+                    nsample = op.getnframes()
+                    channels = op.getnchannels()
+                    stream = op.readframes(-1)
+                    t = int(nsample / rate)
+                    arr = np.frombuffer(stream, dtype=np.int16)
 
-        fig.update_layout(
-            title="Audio Waveforms",
-            xaxis_title="Time (s)",
-            yaxis_title="Amplitude",
-            height=400 * num_files
-        )
+                    # Create a subplot for each audio file
+                    fig.add_trace(go.Scatter(x=np.linspace(0, t, nsample), y=arr, mode='lines',
+                                             name=f'Audio Waveform - {os.path.basename(file_path_str)}'))
+                except Exception as e:
+                    st.warning(f"Error processing file {i}: {file_path_str}")
+                    st.warning(f"Error details: {str(e)}")
 
-        st.plotly_chart(fig)
+            fig.update_layout(
+                title="Audio Waveforms",
+                xaxis_title="Time (s)",
+                yaxis_title="Amplitude",
+                height=400 * num_files
+            )
 
-    else:
-        st.warning("No files selected. Please upload audio files.")
+            st.plotly_chart(fig)
+
+        else:
+            st.warning("Invalid file paths. Please upload audio files.")
 
 if __name__ == "__main__":
     main()
