@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 
 # Function to open file dialog and get the selected file paths
 def choose_files():
-    file_paths = st.file_uploader("Select Audio Files", type=["wav", "mp3","opus"], accept_multiple_files=True)
+    file_paths = st.file_uploader("Select Audio Files", type=["wav", "mp3"], accept_multiple_files=True)
     return file_paths
 
 # Main Streamlit app
@@ -32,20 +32,24 @@ def main():
                     with open(file_path_str, "wb") as f:
                         f.write(uploaded_file.read())
 
-                    op = w.open(file_path_str, 'rb')
-                    rate = op.getframerate()
-                    nsample = op.getnframes()
-                    channels = op.getnchannels()
-                    stream = op.readframes(-1)
-                    t = int(nsample / rate)
-                    arr = np.frombuffer(stream, dtype=np.int16)
+                    # Check if the file is a valid WAV file
+                    with w.open(file_path_str, 'rb') as op:
+                        rate = op.getframerate()
+                        nsample = op.getnframes()
+                        stream = op.readframes(-1)
+                        t = int(nsample / rate)
+                        arr = np.frombuffer(stream, dtype=np.int16)
 
                     # Create a subplot for each audio file
                     fig.add_trace(go.Scatter(x=np.linspace(0, t, nsample), y=arr, mode='lines',
                                              name=f'Audio Waveform - {os.path.basename(file_path_str)}'))
 
-                except Exception as e:
+                except w.Error as wave_error:
                     st.warning(f"Error processing file {i}: {file_path_str}")
+                    st.warning(f"Error details: {str(wave_error)}")
+
+                except Exception as e:
+                    st.warning(f"Unexpected error processing file {i}: {file_path_str}")
                     st.warning(f"Error details: {str(e)}")
 
                 finally:
